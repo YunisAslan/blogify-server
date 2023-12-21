@@ -1,5 +1,5 @@
 const express = require("express");
-const { users, publishers, tags } = require("./db");
+const { users, publishers, tags, news } = require("./db");
 const bodyParser = require("body-parser");
 const crypto = require("crypto");
 const cors = require("cors");
@@ -334,6 +334,102 @@ app.patch("/api/publishers/:id", (req, res) => {
 });
 //#endregion PUBLISHERS API END
 
+//#region NEWS API START
+app.get("/api/news", (req, res) => {
+  if (news.length === 0) {
+    res.status(204).send({
+      message: "Empty news data",
+    });
+  } else {
+    res.status(200).send({
+      message: "Successfully getted",
+      data: news,
+    });
+  }
+});
+
+app.delete("/api/news/:id", (req, res) => {
+  const { id } = req.params;
+
+  const deletedDataIdx = tags.findIndex((item) => item.id == id);
+  const deletedData = tags.splice(deletedDataIdx, 1);
+
+  if (deletedDataIdx === -1) {
+    res.status(404).send({
+      message: "Tag not found",
+    });
+  } else {
+    res.send({
+      message: "Tag successfully deleted",
+      data: deletedData,
+    });
+  }
+});
+
+app.post("/api/news", (req, res) => {
+  const { name } = req.body;
+
+  const id = crypto.randomBytes(8).toString("hex");
+
+  const newTag = {
+    id,
+    name,
+  };
+
+  tags.push(newTag);
+
+  res.send({
+    message: "Tag is successfully created",
+    data: newTag,
+  });
+});
+
+app.put("/api/news/:id", (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  const data = tags.find((item) => item.id == id);
+
+  const updatedTag = {
+    id: data.id,
+  };
+
+  if (name) {
+    updatedTag.name = name;
+  }
+
+  const updatedDataIdx = tags.findIndex((item) => item.id == id);
+  tags.splice(updatedDataIdx, 1, updatedTag);
+
+  if (!data) {
+    res.status(404).send({
+      message: "Tag not found!",
+    });
+  } else {
+    res.send({
+      message: "Tag edited successfully",
+      data: updatedTag,
+    });
+  }
+});
+
+app.patch("/api/news/:id", (req, res) => {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  const data = tags.find((item) => item.id == id);
+
+  if (name) {
+    data.name = name;
+  }
+
+  res.send({
+    message: "Tag updated successfully.",
+    data,
+  });
+});
+//#endregion NEWS API END
+
 //#region TAGS API START
 app.get("/api/tags", (req, res) => {
   if (tags.length === 0) {
@@ -429,7 +525,5 @@ app.patch("/api/tags/:id", (req, res) => {
   });
 });
 //#endregion TAGS API END
-
-
 
 app.listen(PORT, () => console.log(`Listening on port ${PORT}..`));

@@ -49,10 +49,38 @@ const publishers = [
 const news = [
   {
     id: "1",
-    title: "Just title 1",
+    title: "Museum visits to treat loneliness",
     newsBody: "News Body 1",
     linkURL: "",
-    thumbnailImg: "",
+    thumbnailImg:
+      "https://assets.website-files.com/61cc7ec6f43c125c5752aeb9/61cc7ec6f43c12b82e52aed5_23.jpg",
+    createdAt: "Wed Dec 22 2023 00:13:03 GMT+0400 (Azerbaijan Standard Time)",
+  },
+  {
+    id: "2",
+    title: "Title 2",
+    newsBody: "News Body 2",
+    linkURL: "",
+    thumbnailImg:
+      "https://assets.website-files.com/61cc7ec6f43c125c5752aeb9/61cc7ec6f43c12b82e52aed5_23.jpg",
+    createdAt: "Wed Dec 21 2023 00:13:03 GMT+0400 (Azerbaijan Standard Time)",
+  },
+  {
+    id: "3",
+    title: "Title 3",
+    newsBody: "News Body 3",
+    linkURL: "",
+    thumbnailImg:
+      "https://assets.website-files.com/61cc7ec6f43c125c5752aeb9/61cc7ec6f43c12b82e52aed5_23.jpg",
+    createdAt: "Wed Dec 22 2023 00:13:03 GMT+0400 (Azerbaijan Standard Time)",
+  },
+  {
+    id: "4",
+    title: "Title 4",
+    newsBody: "News Body 4",
+    linkURL: "",
+    thumbnailImg:
+      "https://assets.website-files.com/61cc7ec6f43c125c5752aeb9/61cc7ec6f43c12b82e52aed5_23.jpg",
     createdAt: "Wed Dec 22 2023 00:13:03 GMT+0400 (Azerbaijan Standard Time)",
   },
 ];
