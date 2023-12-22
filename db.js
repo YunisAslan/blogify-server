@@ -18,6 +18,7 @@ const users = [
     id: "1",
   },
 ];
+
 const publishers = [
   {
     username: "jojoruski",
@@ -46,6 +47,7 @@ const publishers = [
     id: "2",
   },
 ];
+
 const news = [
   {
     id: "1",
@@ -84,6 +86,7 @@ const news = [
     createdAt: "Wed Dec 22 2023 00:13:03 GMT+0400 (Azerbaijan Standard Time)",
   },
 ];
+
 const tags = [
   {
     id: "1",
@@ -94,6 +97,7 @@ const tags = [
     name: "typescript",
   },
 ];
+
 const subscriptions = [
   {
     id: "1",
