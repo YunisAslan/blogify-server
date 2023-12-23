@@ -14,12 +14,25 @@ const PORT = process.env.PORT;
 
 //#region USERS API START
 app.get("/api/users", (req, res) => {
+  const { name } = req.query;
+
   if (users.length === 0) {
     res.status(204).send({
       message: "Empty users data",
     });
   } else {
-    res.status(200).send({
+    const filteredData = users.filter((user) =>
+      user.username.toLowerCase().trim().includes(name?.toLowerCase().trim())
+    );
+
+    if (name && filteredData?.length) {
+      return res.send({
+        message: "Successfullt getted filtered data",
+        data: filteredData,
+      });
+    }
+
+    return res.send({
       message: "Successfully getted",
       data: users,
     });
