@@ -1,5 +1,5 @@
 const express = require("express");
-const { users, publishers, tags, news } = require("./db");
+const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const crypto = require("crypto");
 const cors = require("cors");
@@ -10,159 +10,142 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3030;
+
+// Schemas
+const UserSchema = new mongoose.Schema({
+  username: String,
+  fullName: String,
+  email: String,
+  password: String,
+  profileImage: String,
+  isAdmin: Boolean,
+});
+
+const PublisherSchema = new mongoose.Schema({
+  username: String,
+  email: String,
+  password: String,
+  backgroundImg: String,
+  profileImg: String,
+  name: String,
+  description: String,
+  joinedDate: String,
+});
+
+const NewsSchema = new mongoose.Schema({
+  id: String,
+  title: String,
+  newsBody: String,
+  linkURL: String,
+  thumbnailImg: String,
+  createdAt: String,
+});
+
+const TagSchema = new mongoose.Schema({
+  name: String,
+  newsId: String,
+});
+
+const SubscriptionSchema = new mongoose.Schema({
+  userId: String,
+  publisherId: String,
+});
+
+// Models
+const UserModel = mongoose.model("users", UserSchema);
+const PublisherModel = mongoose.model("publishers", PublisherSchema);
+const NewsModel = mongoose.model("news", NewsSchema);
+const TagModel = mongoose.model("tags", TagSchema);
+const SubscriptionModel = mongoose.model("subscriptions", SubscriptionSchema);
 
 //#region USERS API START
-app.get("/api/users", (req, res) => {
+app.get("/api/users", async (req, res) => {
   const { name } = req.query;
+  const users = await UserModel.find({});
 
-  if (users.length === 0) {
-    res.status(204).send({
-      message: "Empty users data",
-    });
-  } else {
-    const filteredData = users.filter((user) =>
-      user.username.toLowerCase().trim().includes(name?.toLowerCase().trim())
+  if (name) {
+    const filteredUsers = users.filter((user) =>
+      user.username.toLowerCase().trim().includes(name.toLowerCase().trim())
     );
 
-    if (name && filteredData?.length) {
-      return res.send({
-        message: "Successfullt getted filtered data",
-        data: filteredData,
-      });
-    }
-
-    return res.send({
-      message: "Successfully getted",
+    res.send(filteredUsers);
+  } else {
+    res.send({
+      message: "Successfully getted data",
       data: users,
     });
   }
 });
 
-app.delete("/api/users/:id", (req, res) => {
+// get by ID
+app.get("/api/users/:id", async (req, res) => {
+  const { id } = req.params;
+  const user = await UserModel.findById(id);
+
+  if (user) {
+    res.send({
+      message: "Successfully getted user",
+      data: user,
+    });
+  } else {
+    res.status(404).send({
+      message: "User not found",
+    });
+  }
+});
+
+app.post("/api/users", async (req, res) => {
+  try {
+    const newUser = new UserModel(req.body);
+    await newUser.save();
+
+    res.send({
+      message: "User is successfully registered",
+      data: newUser,
+    });
+  } catch (err) {
+    res.status(500).send({
+      message: "Internal server error",
+    });
+  }
+});
+
+app.delete("/api/users/:id", async (req, res) => {
   const { id } = req.params;
 
-  const deletedDataIdx = users.findIndex((item) => item.id == id);
-  const deletedData = users.splice(deletedDataIdx, 1);
+  const deletedUser = await UserModel.findById(id);
+  await UserModel.findByIdAndDelete(id);
 
-  if (deletedDataIdx === -1) {
+  if (!deletedUser) {
     res.status(404).send({
       message: "User not found",
     });
   } else {
     res.send({
       message: "User successfully deleted",
-      data: deletedData,
+      data: deletedUser,
     });
   }
 });
 
-app.post("/api/users", (req, res) => {
-  const { username, fullName, email, password, profileImage, isAdmin } =
-    req.body;
-
-  const id = crypto.randomBytes(16).toString("hex");
-
-  const newUser = {
-    id,
-    username,
-    fullName,
-    email,
-    password,
-    profileImage,
-    isAdmin,
-  };
-
-  users.push(newUser);
-
-  res.send({
-    message: "User is successfully registered",
-    data: newUser,
-  });
-});
-
-app.put("/api/users/:id", (req, res) => {
+app.patch("/api/users/:id", async (req, res) => {
   const { id } = req.params;
-  const { username, fullName, email, password, profileImage, isAdmin } =
-    req.body;
+  const updatedUser = req.body;
 
-  const data = users.find((item) => item.id == id);
-
-  const updatedUser = {
-    id: data.id,
-    isAdmin: data.isAdmin,
-  };
-
-  if (username) {
-    updatedUser.username = username;
-  }
-
-  if (fullName) {
-    updatedUser.fullName = fullName;
-  }
-
-  if (email) {
-    updatedUser.email = email;
-  }
-
-  if (password) {
-    updatedUser.password = password;
-  }
-
-  if (profileImage) {
-    updatedUser.profileImage = profileImage;
-  }
-
-  const updatedDataIdx = users.findIndex((item) => item.id == id);
-  users.splice(updatedDataIdx, 1, updatedUser);
-
-  if (!data) {
-    res.status(404).send({
-      message: "User not found!",
-    });
-  } else {
-    res.send({
-      message: "User edited successfully",
-      data: updatedUser,
-    });
-  }
-});
-
-app.patch("/api/users/:id", (req, res) => {
-  const { id } = req.params;
-  const { username, fullName, email, password, profileImage } = req.body;
-
-  const data = users.find((item) => item.id == id);
-
-  if (username) {
-    data.username = username;
-  }
-
-  if (fullName) {
-    data.fullName = fullName;
-  }
-
-  if (email) {
-    data.email = email;
-  }
-
-  if (password) {
-    data.password = password;
-  }
-
-  if (profileImage) {
-    data.profileImage = profileImage;
-  }
+  const updatedData = await UserModel.findByIdAndUpdate(id, updatedUser);
 
   res.send({
     message: "User updated successfully.",
-    data,
+    data: updatedData,
   });
 });
 //#endregion USERS API END
 
 //#region PUBLISHERS API START
-app.get("/api/publishers", (req, res) => {
+app.get("/api/publishers", async (req, res) => {
+  const publishers = await PublisherModel.find({});
+
   if (publishers.length === 0) {
     res.status(204).send({
       message: "Empty publishers data",
@@ -175,13 +158,47 @@ app.get("/api/publishers", (req, res) => {
   }
 });
 
-app.delete("/api/publishers/:id", (req, res) => {
+app.get("/api/publishers/:id", async (req, res) => {
+  const { id } = req.params;
+  const publisher = await PublisherModel.findById(id);
+
+  if (publisher) {
+    res.send({
+      message: "Successfully getted publisher data",
+      data: publisher,
+    });
+  } else {
+    res.status(404).send({
+      message: "Publisher not found",
+    });
+  }
+});
+
+app.post("/api/publishers", async (req, res) => {
+  try {
+    const newPublisher = new PublisherModel(req.body);
+    await newPublisher.save();
+
+    res.send({
+      message: "Publisher is successfully registered",
+      data: newPublisher,
+    });
+  } catch (err) {
+    console.error(err);
+
+    res.status(500).send({
+      message: "Internal server error",
+    });
+  }
+});
+
+app.delete("/api/publishers/:id", async (req, res) => {
   const { id } = req.params;
 
-  const deletedDataIdx = publishers.findIndex((item) => item.id == id);
-  const deletedData = publishers.splice(deletedDataIdx, 1);
+  const deletedData = await PublisherModel.findById(id);
+  await PublisherModel.findByIdAndDelete(id);
 
-  if (deletedDataIdx === -1) {
+  if (!deletedData) {
     res.status(404).send({
       message: "Publisher not found",
     });
@@ -193,162 +210,30 @@ app.delete("/api/publishers/:id", (req, res) => {
   }
 });
 
-app.post("/api/publishers", (req, res) => {
-  const {
-    username,
-    email,
-    password,
-    backgroundImg,
-    profileImg,
-    description,
-    name,
-    joinedDate,
-  } = req.body;
-
-  const id = crypto.randomBytes(16).toString("hex");
-
-  const newPublisher = {
-    id,
-    username,
-    email,
-    password,
-    backgroundImg,
-    profileImg,
-    description,
-    name,
-    joinedDate,
-  };
-
-  publishers.push(newPublisher);
-
-  res.send({
-    message: "Publisher is successfully registered",
-    data: newPublisher,
-  });
-});
-
-app.put("/api/publishers/:id", (req, res) => {
+app.patch("/api/publishers/:id", async (req, res) => {
   const { id } = req.params;
-  const {
-    username,
-    email,
-    password,
-    backgroundImg,
-    profileImg,
-    description,
-    name,
-    joinedDate,
-  } = req.body;
 
-  const data = publishers.find((item) => item.id == id);
+  try {
+    await PublisherModel.findByIdAndUpdate(id, req.body);
+    const updatedPublisher = await PublisherModel.findById(id);
 
-  const updatedPublisher = {
-    id: data.id,
-  };
-
-  if (username) {
-    updatedPublisher.username = username;
-  }
-
-  if (email) {
-    updatedPublisher.email = email;
-  }
-
-  if (password) {
-    updatedPublisher.password = password;
-  }
-
-  if (backgroundImg) {
-    updatedPublisher.backgroundImg = backgroundImg;
-  }
-
-  if (profileImg) {
-    updatedPublisher.profileImg = profileImg;
-  }
-
-  if (description) {
-    updatedPublisher.description = description;
-  }
-
-  if (name) {
-    updatedPublisher.name = name;
-  }
-
-  if (joinedDate) {
-    updatedPublisher.joinedDate = joinedDate;
-  }
-
-  const updatedDataIdx = publishers.findIndex((item) => item.id == id);
-  publishers.splice(updatedDataIdx, 1, updatedPublisher);
-
-  if (!data) {
-    res.status(404).send({
-      message: "Publisher not found!",
-    });
-  } else {
     res.send({
-      message: "Publisher edited successfully",
+      message: "Publisher updated successfully.",
       data: updatedPublisher,
     });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({
+      message: "Internal server error",
+    });
   }
-});
-
-app.patch("/api/publishers/:id", (req, res) => {
-  const { id } = req.params;
-  const {
-    username,
-    email,
-    password,
-    backgroundImg,
-    profileImg,
-    description,
-    name,
-    joinedDate,
-  } = req.body;
-
-  const data = publishers.find((item) => item.id == id);
-
-  if (username) {
-    data.username = username;
-  }
-
-  if (email) {
-    data.email = email;
-  }
-
-  if (password) {
-    data.password = password;
-  }
-
-  if (backgroundImg) {
-    data.backgroundImg = backgroundImg;
-  }
-
-  if (profileImg) {
-    data.profileImg = profileImg;
-  }
-
-  if (description) {
-    data.description = description;
-  }
-
-  if (name) {
-    data.name = name;
-  }
-
-  if (joinedDate) {
-    data.joinedDate = joinedDate;
-  }
-
-  res.send({
-    message: "Publisher updated successfully.",
-    data,
-  });
 });
 //#endregion PUBLISHERS API END
 
 //#region NEWS API START
-app.get("/api/news", (req, res) => {
+app.get("/api/news", async (req, res) => {
+  const news = await NewsModel.find({});
+
   if (news.length === 0) {
     res.status(204).send({
       message: "Empty news data",
@@ -361,90 +246,88 @@ app.get("/api/news", (req, res) => {
   }
 });
 
-app.delete("/api/news/:id", (req, res) => {
+app.get("/api/news/:id", async (req, res) => {
   const { id } = req.params;
+  const newsData = await NewsModel.findById(id);
 
-  const deletedDataIdx = tags.findIndex((item) => item.id == id);
-  const deletedData = tags.splice(deletedDataIdx, 1);
-
-  if (deletedDataIdx === -1) {
-    res.status(404).send({
-      message: "Tag not found",
+  if (newsData) {
+    res.send({
+      message: "Successfully getted news",
+      data: newsData,
     });
   } else {
-    res.send({
-      message: "Tag successfully deleted",
-      data: deletedData,
-    });
-  }
-});
-
-app.post("/api/news", (req, res) => {
-  const { name } = req.body;
-
-  const id = crypto.randomBytes(8).toString("hex");
-
-  const newTag = {
-    id,
-    name,
-  };
-
-  tags.push(newTag);
-
-  res.send({
-    message: "Tag is successfully created",
-    data: newTag,
-  });
-});
-
-app.put("/api/news/:id", (req, res) => {
-  const { id } = req.params;
-  const { name } = req.body;
-
-  const data = tags.find((item) => item.id == id);
-
-  const updatedTag = {
-    id: data.id,
-  };
-
-  if (name) {
-    updatedTag.name = name;
-  }
-
-  const updatedDataIdx = tags.findIndex((item) => item.id == id);
-  tags.splice(updatedDataIdx, 1, updatedTag);
-
-  if (!data) {
     res.status(404).send({
-      message: "Tag not found!",
-    });
-  } else {
-    res.send({
-      message: "Tag edited successfully",
-      data: updatedTag,
+      message: "News not found",
     });
   }
 });
 
-app.patch("/api/news/:id", (req, res) => {
-  const { id } = req.params;
-  const { name } = req.body;
+app.post("/api/news", async (req, res) => {
+  const createdNews = new NewsModel(req.body);
+  await createdNews.save();
 
-  const data = tags.find((item) => item.id == id);
-
-  if (name) {
-    data.name = name;
+  try {
+    res.send({
+      message: "News is successfully created",
+      data: createdNews,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({
+      message: "Internal server error",
+    });
   }
+});
 
-  res.send({
-    message: "Tag updated successfully.",
-    data,
-  });
+app.delete("/api/news/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedData = await NewsModel.findById(id);
+    await NewsModel.findByIdAndDelete(id);
+
+    if (deletedData) {
+      res.send({
+        message: "News successfully deleted",
+        data: deletedData,
+      });
+    } else {
+      res.status(404).send({
+        message: "News not found",
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({
+      message: "Internal server error",
+    });
+  }
+});
+
+app.patch("/api/news/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await NewsModel.findByIdAndUpdate(id, req.body);
+    const updatedNews = await NewsModel.findById(id);
+
+    res.send({
+      message: "News updated successfully.",
+      data: updatedNews,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({
+      message: "Internal server error",
+    });
+  }
 });
 //#endregion NEWS API END
 
 //#region TAGS API START
-app.get("/api/tags", (req, res) => {
+app.get("/api/tags", async (req, res) => {
+  const tags = await TagModel.find({});
+
   if (tags.length === 0) {
     res.status(204).send({
       message: "Empty tags data",
@@ -457,86 +340,182 @@ app.get("/api/tags", (req, res) => {
   }
 });
 
-app.delete("/api/tags/:id", (req, res) => {
+app.get("/api/tags/:id", async (req, res) => {
   const { id } = req.params;
+  const tag = await TagModel.findById(id);
 
-  const deletedDataIdx = tags.findIndex((item) => item.id == id);
-  const deletedData = tags.splice(deletedDataIdx, 1);
-
-  if (deletedDataIdx === -1) {
+  if (tag) {
+    res.send({
+      message: "Successfully getted tag",
+      data: tag,
+    });
+  } else {
     res.status(404).send({
       message: "Tag not found",
     });
-  } else {
+  }
+});
+
+app.post("/api/tags", async (req, res) => {
+  try {
+    const newTag = new TagModel(req.body);
+    await newTag.save();
+
     res.send({
-      message: "Tag successfully deleted",
-      data: deletedData,
+      message: "Tag is successfully created",
+      data: newTag,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({
+      message: "Internal server error",
     });
   }
 });
 
-app.post("/api/tags", (req, res) => {
-  const { name } = req.body;
-
-  const id = crypto.randomBytes(8).toString("hex");
-
-  const newTag = {
-    id,
-    name,
-  };
-
-  tags.push(newTag);
-
-  res.send({
-    message: "Tag is successfully created",
-    data: newTag,
-  });
-});
-
-app.put("/api/tags/:id", (req, res) => {
+app.delete("/api/tags/:id", async (req, res) => {
   const { id } = req.params;
-  const { name } = req.body;
 
-  const data = tags.find((item) => item.id == id);
+  const deletedData = await TagModel.findById(id);
+  await TagModel.findByIdAndDelete(id);
 
-  const updatedTag = {
-    id: data.id,
-  };
-
-  if (name) {
-    updatedTag.name = name;
-  }
-
-  const updatedDataIdx = tags.findIndex((item) => item.id == id);
-  tags.splice(updatedDataIdx, 1, updatedTag);
-
-  if (!data) {
-    res.status(404).send({
-      message: "Tag not found!",
+  try {
+    if (deletedData) {
+      res.send({
+        message: "Tag successfully deleted",
+        data: deletedData,
+      });
+    } else {
+      res.status(404).send({
+        message: "Tag not found",
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({
+      message: "Internal server error",
     });
-  } else {
+  }
+});
+
+app.patch("/api/tags/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await TagModel.findByIdAndUpdate(id, req.body);
+    const updatedData = await TagModel.findById(id);
+
     res.send({
-      message: "Tag edited successfully",
-      data: updatedTag,
+      message: "Tag updated successfully.",
+      data: updatedData,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({
+      message: "Internal server error",
     });
   }
-});
-
-app.patch("/api/tags/:id", (req, res) => {
-  const { id } = req.params;
-  const { name } = req.body;
-
-  const data = tags.find((item) => item.id == id);
-
-  if (name) {
-    data.name = name;
-  }
-
-  res.send({
-    message: "Tag updated successfully.",
-    data,
-  });
 });
 //#endregion TAGS API END
 
+//#region SUBSCRIPTIONS API START
+app.get("/api/subscriptions", async (req, res) => {
+  const subscriptions = await SubscriptionModel.find({});
+
+  if (subscriptions.length === 0) {
+    res.status(204).send({
+      message: "Empty subscriptions data",
+    });
+  } else {
+    res.status(200).send({
+      message: "Successfully getted",
+      data: subscriptions,
+    });
+  }
+});
+
+app.get("/api/subscriptions/:id", async (req, res) => {
+  const { id } = req.params;
+  const subscription = await SubscriptionModel.findById(id);
+
+  if (subscription) {
+    res.send({
+      message: "Successfully getted subscription",
+      data: subscription,
+    });
+  } else {
+    res.status(404).send({
+      message: "Subscription not found",
+    });
+  }
+});
+
+app.post("/api/subscriptions", async (req, res) => {
+  try {
+    const newSubscription = new SubscriptionModel(req.body);
+    await newSubscription.save();
+
+    res.send({
+      message: "Subscription is successfully created",
+      data: newSubscription,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({
+      message: "Internal server error",
+    });
+  }
+});
+
+app.delete("/api/subscriptions/:id", async (req, res) => {
+  const { id } = req.params;
+
+  const deletedData = await SubscriptionModel.findById(id);
+  await SubscriptionModel.findByIdAndDelete(id);
+
+  try {
+    if (deletedData) {
+      res.send({
+        message: "Subscription successfully deleted",
+        data: deletedData,
+      });
+    } else {
+      res.status(404).send({
+        message: "Subscription not found",
+      });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({
+      message: "Internal server error",
+    });
+  }
+});
+
+app.patch("/api/subscriptions/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await SubscriptionModel.findByIdAndUpdate(id, req.body);
+    const updatedData = await SubscriptionModel.findById(id);
+
+    res.send({
+      message: "Subscription updated successfully.",
+      data: updatedData,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({
+      message: "Internal server error",
+    });
+  }
+});
+//#endregion SUBSCRIPTIONS API END
+
 app.listen(PORT, () => console.log(`Listening on port ${PORT}..`));
+
+mongoose
+  .connect(
+    process.env.DB_CONNECTION_KEY.replace("<password>", process.env.DB_PASSWORD)
+  )
+  .then(() => console.log("Connected to MongoDB!"));
