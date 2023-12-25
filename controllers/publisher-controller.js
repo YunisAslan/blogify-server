@@ -1,4 +1,5 @@
 const PublisherModel = require("../models/publisher-model");
+const NewsModel = require("../models/news-model");
 
 const publisher_controller = {
   getAll: async (req, res) => {
@@ -52,6 +53,9 @@ const publisher_controller = {
 
     const deletedData = await PublisherModel.findById(id);
     await PublisherModel.findByIdAndDelete(id);
+
+    // delete publisher all news
+    await NewsModel.deleteMany({ publisherId: id });
 
     if (!deletedData) {
       res.status(404).send({
