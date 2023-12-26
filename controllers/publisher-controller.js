@@ -1,5 +1,6 @@
 const PublisherModel = require("../models/publisher-model");
 const NewsModel = require("../models/news-model");
+const bcrypt = require("bcrypt");
 
 const publisher_controller = {
   getAll: async (req, res) => {
@@ -31,8 +32,13 @@ const publisher_controller = {
       });
     }
   },
+  // register
   post: async (req, res) => {
     try {
+      const password = req.body.password;
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      req.body.password = hashedPassword;
       const newPublisher = new PublisherModel(req.body);
       await newPublisher.save();
 
@@ -48,6 +54,41 @@ const publisher_controller = {
       });
     }
   },
+  // login
+  login: async (req, res) => {
+    console.log("body", req.body);
+    const { username, email, password } = req.body;
+
+    const publisher = await PublisherModel.findOne({ email });
+
+    if (!publisher) {
+      res.send({
+        success: false,
+        message: "Invalid credentials or unverified account",
+        data: null,
+      });
+      return;
+    }
+
+    const comparePassword = await bcrypt.compare(password, publisher.password);
+
+    if (!comparePassword) {
+      res.status(401).send({
+        success: false,
+        message: "Invalid credentials or unverified account",
+        data: null,
+      });
+      return;
+    } else {
+      res.status(200).send({
+        success: true,
+        message: `Welcome ${username}!`,
+        data: publisher,
+      });
+    }
+  },
+  // logout
+  // verify email
   delete: async (req, res) => {
     const { id } = req.params;
 
@@ -70,14 +111,21 @@ const publisher_controller = {
   },
   patch: async (req, res) => {
     const { id } = req.params;
+    const updatedPublisher = req.body;
 
     try {
+      // hash updated password
+      const password = updatedPublisher.password;
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      updatedPublisher.password = hashedPassword;
+
       await PublisherModel.findByIdAndUpdate(id, req.body);
-      const updatedPublisher = await PublisherModel.findById(id);
+      const updatedData = await PublisherModel.findById(id);
 
       res.send({
         message: "Publisher updated successfully.",
-        data: updatedPublisher,
+        data: updatedData,
       });
     } catch (err) {
       console.error(err);

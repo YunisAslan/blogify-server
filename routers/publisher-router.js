@@ -9,6 +9,8 @@ router.get("/:id", publisher_controller.getOne);
 
 router.post("/", publisher_controller.post);
 
+router.post("/login", publisher_controller.login);
+
 router.delete("/:id", publisher_controller.delete);
 
 router.patch("/:id", publisher_controller.patch);
