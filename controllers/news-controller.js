@@ -97,6 +97,35 @@ const news_controller = {
       data: publisherNews,
     });
   },
+  likeNewsPost: async (req, res) => {
+    const { id } = req.params;
+    const { accountID } = req.body;
+
+    const onePublisherNews = await NewsModel.findById(id);
+
+    if (!onePublisherNews.likes.includes(accountID)) {
+      onePublisherNews.likes.push(accountID);
+      await NewsModel.findByIdAndUpdate(id, onePublisherNews);
+
+      res.send({
+        value: "like",
+        message: "Successfully liked",
+        data: onePublisherNews,
+      });
+    } else {
+      const updatedLikes = onePublisherNews.likes.filter(
+        (like) => like !== accountID
+      );
+      onePublisherNews.likes = updatedLikes;
+      await NewsModel.findByIdAndUpdate(id, onePublisherNews);
+
+      res.send({
+        value: "disslike",
+        message: "Remove like",
+        data: onePublisherNews,
+      });
+    }
+  },
 };
 
 module.exports = news_controller;

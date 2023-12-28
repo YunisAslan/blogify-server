@@ -6,10 +6,12 @@ const NewsSchema = new mongoose.Schema({
   newsBody: String,
   linkURL: String,
   thumbnailImg: String,
+  description: String,
   publisherId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "publishers",
   },
+  likes: Array,
   createdAt: String,
 });
 

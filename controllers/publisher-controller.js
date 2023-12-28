@@ -56,7 +56,6 @@ const publisher_controller = {
   },
   // login
   login: async (req, res) => {
-    console.log("body", req.body);
     const { username, email, password } = req.body;
 
     const publisher = await PublisherModel.findOne({ email });
