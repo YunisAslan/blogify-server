@@ -1,4 +1,5 @@
 const TagModel = require("../models/tag-model");
+const NewsModel = require("../models/news-model");
 
 const tag_controller = {
   getAll: async (req, res) => {
@@ -86,6 +87,22 @@ const tag_controller = {
       res.status(500).send({
         message: "Internal server error",
       });
+    }
+  },
+  getAllTagsByNewsID: async (req, res) => {
+    const { newsId } = req.params;
+
+    try {
+      const newsWithTags = await NewsModel.findById(newsId).populate("tags");
+
+      if (newsWithTags) {
+        return res.send({ message: "success", data: newsWithTags.tags });
+      } else {
+        return res.send({ message: "News not found" });
+      }
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send({ message: "Internal server error" });
     }
   },
 };

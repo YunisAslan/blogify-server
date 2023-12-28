@@ -11,6 +11,12 @@ const NewsSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "publishers",
   },
+  tags: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "tags",
+    },
+  ],
   likes: Array,
   createdAt: String,
 });

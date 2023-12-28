@@ -13,4 +13,6 @@ router.delete("/:id", tag_controller.delete);
 
 router.patch("/:id", tag_controller.patch);
 
+router.get("/news/:newsId", tag_controller.getAllTagsByNewsID);
+
 module.exports = router;
