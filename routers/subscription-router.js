@@ -13,4 +13,9 @@ router.delete("/:id", subscription_controller.delete);
 
 router.patch("/:id", subscription_controller.patch);
 
+router.get(
+  "/publishers/:userId",
+  subscription_controller.getAllSubscribedPublishers
+);
+
 module.exports = router;

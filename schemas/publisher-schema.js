@@ -9,6 +9,12 @@ const PublisherSchema = new mongoose.Schema({
   name: String,
   description: String,
   joinedDate: String,
+  subscriptions: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "subscriptions",
+    },
+  ],
   isVerified: Boolean,
 });
 

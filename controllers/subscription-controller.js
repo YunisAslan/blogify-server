@@ -1,4 +1,6 @@
 const SubscriptionModel = require("../models/subscription-model");
+const UserModel = require("../models/user-model");
+const PublisherModel = require("../models/publisher-model");
 
 const subscription_controller = {
   getAll: async (req, res) => {
@@ -33,7 +35,22 @@ const subscription_controller = {
   post: async (req, res) => {
     try {
       const newSubscription = new SubscriptionModel(req.body);
-      await newSubscription.save();
+      const createdSubscription = await newSubscription.save();
+
+      const findUser =
+        (await UserModel.findById(createdSubscription.userId)) ||
+        (await PublisherModel.findById(createdSubscription.userId));
+
+      findUser.subscriptions.push(createdSubscription._id);
+
+      // burada necəsə, tapılan accountun user yoxsa publisher olduğunu təyin etməliydim.
+      if (findUser.isAdmin == false || findUser.isAdmin == true) {
+        console.log("11");
+        await UserModel.findByIdAndUpdate(findUser._id, findUser);
+      } else {
+        console.log("22");
+        await PublisherModel.findByIdAndUpdate(findUser._id, findUser);
+      }
 
       res.send({
         message: "Subscription is successfully created",
@@ -84,6 +101,39 @@ const subscription_controller = {
     } catch (err) {
       console.error(err);
       res.status(500).send({
+        message: "Internal server error",
+      });
+    }
+  },
+  getAllSubscribedPublishers: async (req, res) => {
+    const { userId } = req.params;
+
+    try {
+      const user =
+        (await UserModel.findById(userId).populate({
+          path: "subscriptions",
+          populate: {
+            path: "publisherId",
+          },
+        })) ||
+        (await PublisherModel.findById(userId).populate({
+          path: "subscriptions",
+          populate: {
+            path: "publisherId",
+          },
+        }));
+
+      const subscribedPublishers = await PublisherModel.find({
+        _id: user.subscriptions.map((item) => item.publisherId._id),
+      });
+
+      return res.send({
+        message: "successusus",
+        data: subscribedPublishers,
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).send({
         message: "Internal server error",
       });
     }

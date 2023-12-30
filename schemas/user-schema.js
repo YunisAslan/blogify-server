@@ -6,6 +6,12 @@ const UserSchema = new mongoose.Schema({
   email: String,
   password: String,
   profileImage: String,
+  subscriptions: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "subscriptions",
+    },
+  ],
   isAdmin: Boolean,
   isVerified: Boolean,
 });
