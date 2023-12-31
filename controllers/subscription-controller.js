@@ -66,10 +66,28 @@ const subscription_controller = {
   delete: async (req, res) => {
     const { id } = req.params;
 
-    const deletedData = await SubscriptionModel.findById(id);
-    await SubscriptionModel.findByIdAndDelete(id);
+    const { userId } = req.body;
 
     try {
+      const findUser =
+        (await UserModel.findById(userId)) ||
+        (await PublisherModel.findById(userId));
+
+      if (!findUser) {
+        return res.status(404).send({
+          message: "User not found",
+        });
+      }
+
+      findUser.subscriptions = findUser.subscriptions.filter(
+        (item) => item.toString() !== id
+      );
+
+      await findUser.save();
+
+      const deletedData = await SubscriptionModel.findById(id);
+      await SubscriptionModel.findByIdAndDelete(id);
+
       if (deletedData) {
         res.send({
           message: "Subscription successfully deleted",

@@ -1,4 +1,5 @@
 const NewsModel = require("../models/news-model");
+const mongoose = require("mongoose");
 
 const news_controller = {
   getAll: async (req, res) => {
@@ -17,17 +18,22 @@ const news_controller = {
   },
   getOne: async (req, res) => {
     const { id } = req.params;
-    const newsData = await NewsModel.findById(id);
 
-    if (newsData) {
-      res.send({
-        message: "Successfully getted news",
-        data: newsData,
-      });
-    } else {
-      res.status(404).send({
-        message: "News not found",
-      });
+    try {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        return res.status(404).json({ message: `No news with id :${id}` });
+      }
+
+      const newsData = await NewsModel.findById(id);
+
+      if (newsData) {
+        return res.send({
+          message: "Successfully getted news",
+          data: newsData,
+        });
+      }
+    } catch (err) {
+      console.error(err);
     }
   },
   post: async (req, res) => {
