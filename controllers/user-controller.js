@@ -1,5 +1,7 @@
 const UserModel = require("../models/user-model");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+const sendVerifyEmail = require("../helpers/sendEmail");
 
 const user_controller = {
   getAll: async (req, res) => {
@@ -42,6 +44,18 @@ const user_controller = {
       const hashedPassword = await bcrypt.hash(password, salt);
       req.body.password = hashedPassword;
       const newUser = new UserModel(req.body);
+
+      const token = jwt.sign(
+        { email: req.body.email },
+        process.env.SECRET_KEY,
+        {
+          expiresIn: "1d",
+        }
+      );
+      res.cookie("token", token, { httpOnly: true, secure: true });
+
+      sendVerifyEmail("users", req.body.email, token);
+
       await newUser.save();
 
       res.send({
@@ -59,21 +73,13 @@ const user_controller = {
     const { username, email, password } = req.body;
 
     const user = await UserModel.findOne({ email });
-    // const comparedPassword = bcrypt.compare(
-    //   password,
-    //   user.password,
-    //   (err, res) => {
-    //     if (err) {
-    //       res.send({ message: "Something went wrong!" });
-    //     }
 
-    //     if (res) {
-    //       // ???
-    //     } else {
-    //       return res.send({ message: "Passwords do not match" });
-    //     }
-    //   }
-    // );
+    const token = jwt.sign(
+      { id: user?._id, username, email, password },
+      process.env.SECRET_KEY,
+      { expiresIn: "1d" }
+    );
+    res.cookie("token", token, { httpOnly: true, secure: true });
 
     if (!user) {
       res.send({
@@ -84,8 +90,8 @@ const user_controller = {
       return;
     }
 
-    const comparedPassword = await bcrypt.compare(password, user.password);
-    if (!comparedPassword) {
+    const comparePassword = await bcrypt.compare(password, user.password);
+    if (!comparePassword || !user.isVerified) {
       res.status(401).send({
         success: false,
         message: "Invalid credentials or unverified account!",
@@ -93,13 +99,41 @@ const user_controller = {
       });
       return;
     } else {
-      res
-        .status(200)
-        .send({ success: true, message: `Welcome ${username}!`, data: user });
+      res.status(200).send({
+        success: true,
+        message: `Welcome ${username}!`,
+        data: user,
+        token,
+      });
     }
   },
-  // logout
   // verify email
+  verify: async (req, res) => {
+    const { token } = req.params;
+
+    jwt.verify(token, process.env.SECRET_KEY, async (err, decoded) => {
+      console.log("err: ", err);
+      if (err) {
+        return res.send({
+          message: "Invalid token",
+        });
+      }
+
+      const foundAccount = await UserModel.findOne({ email: decoded.email });
+
+      if (!foundAccount) {
+        return res.send({
+          message: "Account not found with this email!",
+        });
+      }
+
+      foundAccount.isVerified = true;
+
+      await foundAccount.save();
+
+      res.redirect(`${process.env.BASE_URL}/login`);
+    });
+  },
   delete: async (req, res) => {
     const { id } = req.params;
 

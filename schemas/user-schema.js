@@ -14,6 +14,7 @@ const UserSchema = new mongoose.Schema({
   ],
   isAdmin: Boolean,
   isVerified: Boolean,
+  type: String,
 });
 
 module.exports = UserSchema;

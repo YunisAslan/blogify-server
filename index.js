@@ -3,11 +3,13 @@ const app = express();
 
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const cookieParser = require("cookie-parser");
 
 require("./config/db");
 require("dotenv").config();
 app.use(cors());
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 const router = require("./routers");
 

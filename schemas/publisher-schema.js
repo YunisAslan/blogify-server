@@ -16,6 +16,7 @@ const PublisherSchema = new mongoose.Schema({
     },
   ],
   isVerified: Boolean,
+  type: String,
 });
 
 module.exports = PublisherSchema;

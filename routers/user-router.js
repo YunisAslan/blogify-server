@@ -10,6 +10,8 @@ router.get("/:id", user_controller.getOne);
 
 router.post("/", UserAuthMiddleware, user_controller.post);
 
+router.get("/verify/:token", user_controller.verify);
+
 router.post("/login", user_controller.login);
 
 router.delete("/:id", user_controller.delete);

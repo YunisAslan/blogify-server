@@ -45,10 +45,8 @@ const subscription_controller = {
 
       // burada necəsə, tapılan accountun user yoxsa publisher olduğunu təyin etməliydim.
       if (findUser.isAdmin == false || findUser.isAdmin == true) {
-        console.log("11");
         await UserModel.findByIdAndUpdate(findUser._id, findUser);
       } else {
-        console.log("22");
         await PublisherModel.findByIdAndUpdate(findUser._id, findUser);
       }
 
