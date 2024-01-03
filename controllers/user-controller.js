@@ -39,11 +39,35 @@ const user_controller = {
   // register
   post: async (req, res) => {
     try {
-      const password = req.body.password;
+      const profileImg = req.file;
+      const {
+        username,
+        fullName,
+        email,
+        password,
+        subscriptions,
+        isAdmin,
+        type,
+        isVerified,
+      } = req.body;
+
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
       req.body.password = hashedPassword;
-      const newUser = new UserModel(req.body);
+
+      const createdUser = {
+        username,
+        fullName,
+        email,
+        password: req.body.password,
+        subscriptions,
+        isAdmin,
+        type,
+        isVerified,
+        profileImg,
+      };
+
+      const newUser = new UserModel(createdUser);
 
       const token = jwt.sign(
         { email: req.body.email },

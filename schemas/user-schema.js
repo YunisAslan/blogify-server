@@ -5,7 +5,7 @@ const UserSchema = new mongoose.Schema({
   fullName: String,
   email: String,
   password: String,
-  profileImage: String,
+  profileImg: Object,
   subscriptions: [
     {
       type: mongoose.Schema.Types.ObjectId,

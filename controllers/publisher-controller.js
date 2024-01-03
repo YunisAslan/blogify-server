@@ -37,11 +37,39 @@ const publisher_controller = {
   // register
   post: async (req, res) => {
     try {
-      const password = req.body.password;
+      const profileImg = req.file;
+      const {
+        username,
+        email,
+        backgroundImg,
+        name,
+        password,
+        description,
+        joinedDate,
+        subscriptions,
+        type,
+        isVerified,
+      } = req.body;
+
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
       req.body.password = hashedPassword;
-      const newPublisher = new PublisherModel(req.body);
+
+      const createdPublisher = {
+        username,
+        email,
+        password: req.body.password,
+        backgroundImg,
+        name,
+        description,
+        joinedDate,
+        subscriptions,
+        type,
+        isVerified,
+        profileImg,
+      };
+
+      const newPublisher = new PublisherModel(createdPublisher);
 
       // generate token
       const token = jwt.sign(
@@ -163,16 +191,46 @@ const publisher_controller = {
   },
   patch: async (req, res) => {
     const { id } = req.params;
+    const aaa = req.file;
     const updatedPublisher = req.body;
+
+    const {
+      username,
+      email,
+      backgroundImg,
+      name,
+      password,
+      description,
+      joinedDate,
+      subscriptions,
+      type,
+      isVerified,
+      profileImg,
+    } = req.body;
 
     try {
       // hash updated password
-      const password = updatedPublisher.password;
       const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      updatedPublisher.password = hashedPassword;
+      if (password) {
+        const hashedPassword = await bcrypt.hash(password, salt);
+        updatedPublisher.password = hashedPassword;
+      }
 
-      await PublisherModel.findByIdAndUpdate(id, req.body);
+      const patchedPublisher = {
+        username,
+        email,
+        password: updatedPublisher.password,
+        backgroundImg,
+        name,
+        description,
+        joinedDate,
+        subscriptions,
+        type,
+        isVerified,
+        profileImg,
+      };
+
+      await PublisherModel.findByIdAndUpdate(id, patchedPublisher);
       const updatedData = await PublisherModel.findById(id);
 
       res.send({

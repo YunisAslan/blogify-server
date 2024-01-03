@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const upload = require("../helpers/multerUpload");
 
 const user_controller = require("../controllers/user-controller");
 const UserAuthMiddleware = require("../middlewares/user-middleware");
@@ -8,7 +9,12 @@ router.get("/", user_controller.getAll);
 
 router.get("/:id", user_controller.getOne);
 
-router.post("/", UserAuthMiddleware, user_controller.post);
+router.post(
+  "/",
+  upload?.single("profileImg"),
+  UserAuthMiddleware,
+  user_controller.post
+);
 
 router.get("/verify/:token", user_controller.verify);
 

@@ -5,7 +5,7 @@ const userValidationSchema = Joi.object({
   fullName: Joi.string().min(2).max(30).required(),
   email: Joi.string().email().required(),
   password: Joi.string().required(),
-  profileImage: Joi.string().uri().optional().allow(""),
+  profileImg: Joi.any(),
   isAdmin: Joi.boolean(),
   isVerified: Joi.boolean(),
 });

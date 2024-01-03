@@ -4,6 +4,9 @@ const userValidationSchema = require("../validations/user-validation");
 const UserAuthMiddleware = async (req, res, next) => {
   const { error } = userValidationSchema.validate(req.body);
   const { username, email } = req.body;
+  console.log("error", error);
+  console.log("WARNINBG", username, email);
+  console.log("body", req.body);
 
   // same email & username validation
   const existedUsername = await UserModel.findOne({ username });
@@ -20,7 +23,7 @@ const UserAuthMiddleware = async (req, res, next) => {
   if (!error) {
     next();
   } else {
-    res.send({
+    return res.send({
       message: error?.message,
     });
   }
