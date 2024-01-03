@@ -166,7 +166,7 @@ const publisher_controller = {
 
       await foundAccount.save();
 
-      res.redirect(`${process.env.BASE_URL}/login`);
+      res.redirect(`${process.env.CLIENT_BASE_URL}/login`);
     });
   },
   delete: async (req, res) => {
