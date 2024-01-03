@@ -1,4 +1,6 @@
 const UserModel = require("../models/user-model");
+const SubscriptionModel = require("../models/subscription-model");
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const sendVerifyEmail = require("../helpers/sendEmail");
@@ -136,7 +138,6 @@ const user_controller = {
     const { token } = req.params;
 
     jwt.verify(token, process.env.SECRET_KEY, async (err, decoded) => {
-      console.log("err: ", err);
       if (err) {
         return res.send({
           message: "Invalid token",
@@ -163,6 +164,9 @@ const user_controller = {
 
     const deletedUser = await UserModel.findById(id);
     await UserModel.findByIdAndDelete(id);
+
+    // delete subscriptions
+    await SubscriptionModel.deleteMany({ userId: id });
 
     if (!deletedUser) {
       res.status(404).send({

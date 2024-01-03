@@ -17,7 +17,7 @@ async function sendVerifyEmail(type, email, token) {
     to: email, // list of receivers
     subject: "Verify your account (Blogify)",
     text: "That was easy!",
-    html: `Click here to verify your account: <a href="http://localhost:6001/api/${type}/verify/${token}" style="text-decoration-line: underline; color: blue;">click</a>`,
+    html: `Click here to verify your account: <a href="${process.env.SERVER_BASE_URL}/api/${type}/verify/${token}" style="text-decoration-line: underline; color: blue;">click</a>`,
   };
 
   await transporter.sendMail(mailData, (err, info) => {

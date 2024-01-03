@@ -1,5 +1,7 @@
 const PublisherModel = require("../models/publisher-model");
 const NewsModel = require("../models/news-model");
+const SubscriptionModel = require("../models/subscription-model");
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const sendVerifyEmail = require("../helpers/sendEmail");
@@ -177,6 +179,8 @@ const publisher_controller = {
 
     // delete publisher all news
     await NewsModel.deleteMany({ publisherId: id });
+    // delete subscriptions
+    await SubscriptionModel.deleteMany({ publisherId: id });
 
     if (!deletedData) {
       res.status(404).send({

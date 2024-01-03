@@ -4,10 +4,7 @@ const userValidationSchema = require("../validations/user-validation");
 const UserAuthMiddleware = async (req, res, next) => {
   const { error } = userValidationSchema.validate(req.body);
   const { username, email } = req.body;
-  console.log("error", error);
-  console.log("WARNINBG", username, email);
-  console.log("body", req.body);
-
+  
   // same email & username validation
   const existedUsername = await UserModel.findOne({ username });
   const existedEmail = await UserModel.findOne({ email });

@@ -4,9 +4,9 @@ const router = express.Router();
 const news_controller = require("../controllers/news-controller");
 const verifyJwtToken = require("../middlewares/verify-jwt-middleware");
 
-router.get("/", verifyJwtToken, news_controller.getAll);
+router.get("/", news_controller.getAll);
 
-router.get("/:id", news_controller.getOne);
+router.get("/:id", verifyJwtToken, news_controller.getOne);
 
 router.get("/publisher/:id", news_controller.getPublisherAllNews);
 
