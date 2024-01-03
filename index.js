@@ -24,3 +24,5 @@ app.use("/api/subscriptions", router.subscription);
 app.listen(process.env.PORT || 3030, () =>
   console.log(`Listening on port ${process.env.PORT}..`)
 );
+
+module.exports = app;
