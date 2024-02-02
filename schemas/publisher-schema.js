@@ -5,7 +5,7 @@ const PublisherSchema = new mongoose.Schema({
   email: String,
   password: String,
   backgroundImg: String,
-  profileImg: Object,
+  profileImg: String,
   name: String,
   description: String,
   joinedDate: String,

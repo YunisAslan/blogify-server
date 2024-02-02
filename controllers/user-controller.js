@@ -41,12 +41,12 @@ const user_controller = {
   // register
   post: async (req, res) => {
     try {
-      const profileImg = req.file;
       const {
         username,
         fullName,
         email,
         password,
+        profileImg,
         subscriptions,
         isAdmin,
         type,

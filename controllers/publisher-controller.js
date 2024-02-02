@@ -39,7 +39,6 @@ const publisher_controller = {
   // register
   post: async (req, res) => {
     try {
-      const profileImg = req.file;
       const {
         username,
         email,
@@ -48,6 +47,7 @@ const publisher_controller = {
         password,
         description,
         joinedDate,
+        profileImg,
         subscriptions,
         type,
         isVerified,
@@ -195,7 +195,6 @@ const publisher_controller = {
   },
   patch: async (req, res) => {
     const { id } = req.params;
-    const aaa = req.file;
     const updatedPublisher = req.body;
 
     const {
