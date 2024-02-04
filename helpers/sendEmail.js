@@ -20,10 +20,21 @@ async function sendVerifyEmail(type, email, token) {
     html: `Click here to verify your account: <a href="${process.env.SERVER_BASE_URL}/api/${type}/verify/${token}" style="text-decoration-line: underline; color: blue;">click</a>`,
   };
 
-  await transporter.sendMail(mailData, (err, info) => {
-    // console.log("err", err);
-    // console.log("info", info);
+  await new Promise((resolve, reject) => {
+    transporter.sendMail(mailData, (err, info) => {
+      if (err) {
+        console.error(err);
+        reject(err);
+      } else {
+        resolve(info);
+      }
+    });
   });
+
+  // await transporter.sendMail(mailData, (err, info) => {
+  //   // console.log("err", err);
+  //   // console.log("info", info);
+  // });
 }
 
 module.exports = sendVerifyEmail;
